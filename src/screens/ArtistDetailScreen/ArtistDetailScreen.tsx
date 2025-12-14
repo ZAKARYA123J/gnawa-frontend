@@ -1,13 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  Button,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Button, ActivityIndicator } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import {
   useRoute,
   useNavigation,
@@ -40,7 +33,11 @@ const ArtistDetailScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Image source={{ uri: artist.photoUrl }} style={styles.image} />
+      <FastImage
+        source={{ uri: artist.photoUrl }}
+        style={styles.image}
+        resizeMode={FastImage.resizeMode.cover}
+      />
       <View style={styles.content}>
         <Text style={styles.name}>{artist.name}</Text>
         <Text style={styles.style}>{artist.style}</Text>

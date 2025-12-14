@@ -1,16 +1,10 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import { useEventInfo } from '../../hooks/useGnawaData';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
+import FastImage from 'react-native-fast-image';
+import { useEvents } from '../../hooks/useGnawaData';
 
 const HomeScreen = () => {
-  const { data: event, isLoading, error } = useEventInfo();
+  const { data: events, isLoading, error } = useEvents();
 
   if (isLoading) {
     return (
@@ -20,7 +14,7 @@ const HomeScreen = () => {
     );
   }
 
-  if (error || !event) {
+  if (error || !events) {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Failed to load event info.</Text>
@@ -29,27 +23,40 @@ const HomeScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Image
-        source={{
-          uri: 'https://images.unsplash.com/photo-1507874457470-272b3c8d8ee2',
-        }}
-        style={{ width: 300, height: 200 }}
-        resizeMode="cover"
-      />
-
-      <View style={styles.content}>
-        <Text style={styles.title}>{event.title}</Text>
-        <Text style={styles.date}>{new Date(event.date).toDateString()}</Text>
-        <Text style={styles.location}>{event.location}</Text>
-        <Text style={styles.description}>{event.description}</Text>
-      </View>
-    </ScrollView>
+    <FlatList
+      style={styles.container}
+      data={events}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={styles.list}
+      ListHeaderComponent={
+        <>
+  
+        </>
+      }
+      renderItem={({ item }) => (
+        <View style={styles.card}>
+          {item.imageUrl ? (
+            <FastImage
+              source={{ uri: item.imageUrl }}
+              style={styles.cardImage}
+              resizeMode={FastImage.resizeMode.cover}
+            />
+          ) : null}
+          <View style={styles.cardBody}>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardMeta}>{new Date(item.date).toDateString()}</Text>
+            <Text style={styles.cardMeta}>{item.location}</Text>
+            <Text style={styles.cardDesc}>{item.description}</Text>
+          </View>
+        </View>
+      )}
+    />
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 100,
     flex: 1,
     backgroundColor: '#fff',
   },
@@ -63,8 +70,58 @@ const styles = StyleSheet.create({
     height: 200,
     resizeMode: 'cover',
   },
-  content: {
-    padding: 20,
+  bannerImage: {
+    width: 300,
+    height: 200,
+    alignSelf: 'center',
+    marginTop: 24,
+  },
+  list: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  sectionTitle: {
+    paddingHorizontal: 4,
+    marginTop: 16,
+    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#222',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+    borderColor: '#eaeaea',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  cardImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: '#f0f0f0',
+  },
+  cardBody: {
+    padding: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 6,
+  },
+  cardMeta: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  cardDesc: {
+    fontSize: 14,
+    color: '#444',
+    marginTop: 8,
   },
   title: {
     fontSize: 24,

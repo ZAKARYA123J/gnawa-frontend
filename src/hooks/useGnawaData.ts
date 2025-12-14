@@ -8,6 +8,13 @@ export const useEventInfo = () => {
   });
 };
 
+export const useEvents = () => {
+  return useQuery<Event[]>({
+    queryKey: ['events'],
+    queryFn: api.getEvents,
+  });
+};
+
 export const useArtists = () => {
   return useQuery({
     queryKey: ['artists'],

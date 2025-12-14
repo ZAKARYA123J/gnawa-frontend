@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { Platform } from 'react-native';
 
 // Types
 export interface Event {
@@ -36,11 +37,53 @@ export interface LoginCredentials {
 // API Configuration
 const BASE_URL = 'http://10.0.2.2:3000'; // This should work in Android Emulator
 
+// Normalize URLs coming from backend so Android emulator can load them.
+// - Converts relative paths to absolute using BASE_URL
+// - Rewrites localhost/127.0.0.1 to 10.0.2.2 on Android
+const normalizeUrl = (url: string | undefined): string | undefined => {
+  if (!url) return url;
+
+  const isAbsolute = url.startsWith('http://') || url.startsWith('https://');
+  let absoluteUrl = isAbsolute
+    ? url
+    : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+
+  if (Platform.OS === 'android') {
+    absoluteUrl = absoluteUrl
+      .replace('http://localhost:', 'http://10.0.2.2:')
+      .replace('https://localhost:', 'http://10.0.2.2:')
+      .replace('http://127.0.0.1:', 'http://10.0.2.2:')
+      .replace('https://127.0.0.1:', 'http://10.0.2.2:');
+  }
+
+  return absoluteUrl;
+};
+
+const normalizeArtist = (artist: Artist): Artist => ({
+  ...artist,
+  photoUrl: normalizeUrl(artist.photoUrl) as string,
+});
+
+const normalizeEventData = (event: Event): Event => ({
+  ...event,
+  imageUrl: normalizeUrl(event.imageUrl) as string,
+});
+
 // Query Client
 export const queryClient = new QueryClient();
 
 // API Services
 export const api = {
+  getEvents: async (): Promise<Event[]> => {
+    const response = await fetch(`${BASE_URL}/events`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    const events = Array.isArray(data) ? data : [data];
+    return events.map(normalizeEventData);
+  },
+
   getEvent: async (): Promise<Event> => {
     // Check if we should fetch a specific event or a singleton
     // For now, let's assume we fetch the first event from a list or a specific endpoint
@@ -50,7 +93,8 @@ export const api = {
     }
     const events = await response.json();
     // Return the first event if an array is returned, or the object itself
-    return Array.isArray(events) ? events[0] : events;
+    const eventData = Array.isArray(events) ? events[0] : events;
+    return normalizeEventData(eventData);
   },
 
   getArtists: async (): Promise<Artist[]> => {
@@ -58,7 +102,8 @@ export const api = {
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
-    return response.json();
+    const data = await response.json();
+    return (Array.isArray(data) ? data : []).map(normalizeArtist);
   },
 
   getArtistById: async (id: string): Promise<Artist | undefined> => {
@@ -67,7 +112,8 @@ export const api = {
       if (response.status === 404) return undefined;
       throw new Error('Network response was not ok');
     }
-    return response.json();
+    const artist = await response.json();
+    return normalizeArtist(artist);
   },
 
   createArtist: async (artist: Omit<Artist, 'id'>): Promise<Artist> => {
@@ -81,7 +127,8 @@ export const api = {
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
-    return response.json();
+    const created = await response.json();
+    return normalizeArtist(created);
   },
 
   updateArtist: async (
@@ -98,7 +145,8 @@ export const api = {
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
-    return response.json();
+    const updated = await response.json();
+    return normalizeArtist(updated);
   },
 
   deleteArtist: async (id: string): Promise<boolean> => {

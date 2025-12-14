@@ -4,11 +4,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import HomeScreen from '../screens/HomeScreen/HomeScreen';
+import ArtistsScreen from '../screens/ArtistsScreen/ArtistsScreen';
 import ArtistDetailScreen from '../screens/ArtistDetailScreen/ArtistDetailScreen';
 import MyBookingsScreen from '../screens/MyBookingsScreen/MyBookingsScreen';
 import BookingFormScreen from '../screens/BookingFormScreen';
 import AdminAuthScreen from '../screens/Admin/AdminAuthScreen';
-import AdminArtisansScreen from '../screens/Admin/AdminArtisansScreen';
 import { useAdminStore } from '../store/useAdminStore';
 
 export type ArtistsStackParamList = {
@@ -26,8 +26,8 @@ function ArtistsStack() {
     <Stack.Navigator>
       <Stack.Screen
         name="ArtistsList"
-        component={AdminArtisansScreen}
-        options={{ headerShown: false }}
+        component={ArtistsScreen}
+        options={{ title: 'Artists' }}
       />
       <Stack.Screen
         name="ArtistDetail"
@@ -48,8 +48,27 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
+        tabBarHideOnKeyboard: true,
+        tabBarStyle: {
+          backgroundColor: '#ffffff',
+          borderTopColor: '#e6e6e6',
+          height: 64,
+          paddingBottom: 16,
+          paddingTop: 10,
+          elevation: 12,
+          shadowColor: '#000',
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+        },
+        tabBarItemStyle: {
+          paddingBottom: 4,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
+        tabBarIcon: ({ focused, color }) => {
+          let iconName: string = 'home-outline';
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
@@ -59,12 +78,11 @@ function MainTabs() {
             iconName = focused ? 'calendar' : 'calendar-outline';
           }
 
-          return (
-            <Ionicons name={iconName as string} size={size} color={color} />
-          );
+          return <Ionicons name={iconName} size={24} color={color} />;
         },
-        tabBarActiveTintColor: 'tomato',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#0B7285',
+        tabBarInactiveTintColor: '#8e9aa9',
+        safeAreaInsets: { bottom: 0 },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />

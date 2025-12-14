@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { useArtists } from '../../hooks/useGnawaData';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { ArtistsStackParamList } from '../../navigation/AppNavigator';
@@ -30,7 +31,11 @@ const ArtistsScreen = () => {
             style={styles.card}
             onPress={() => navigation.navigate('ArtistDetail', { artistId: item.id })}
         >
-            <Image source={{ uri: item.photoUrl }} style={styles.image} />
+            <FastImage
+                source={{ uri: item.photoUrl }}
+                style={styles.image}
+                resizeMode={FastImage.resizeMode.cover}
+            />
             <View style={styles.info}>
                 <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.style}>{item.style}</Text>
