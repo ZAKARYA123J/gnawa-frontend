@@ -27,6 +27,15 @@ const MyBookingsScreen = () => {
             <View style={styles.details}>
                 <Text style={styles.detailText}>User: {item.userName}</Text>
                 <Text style={styles.detailText}>Date: {new Date(item.date).toLocaleDateString()}</Text>
+                {item.email ? (
+                    <Text style={styles.detailText}>Email: {item.email}</Text>
+                ) : null}
+                {typeof item.quantity === 'number' ? (
+                    <Text style={styles.detailText}>Tickets: {item.quantity}</Text>
+                ) : null}
+                {item.phoneNumber ? (
+                    <Text style={styles.detailText}>Phone: {item.phoneNumber}</Text>
+                ) : null}
             </View>
             <TouchableOpacity
                 style={styles.cancelButton}

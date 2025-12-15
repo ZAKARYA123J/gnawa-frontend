@@ -15,6 +15,14 @@ export const useEvents = () => {
   });
 };
 
+export const useEventById = (id: string) => {
+  return useQuery<Event | undefined>({
+    queryKey: ['event', id],
+    queryFn: () => api.getEventById(id),
+    enabled: !!id,
+  });
+};
+
 export const useArtists = () => {
   return useQuery({
     queryKey: ['artists'],
@@ -57,6 +65,37 @@ export const useDeleteArtist = () => {
     mutationFn: (id: string) => api.deleteArtist(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['artists'] });
+    },
+  });
+};
+
+export const useCreateEvent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (newEvent: Omit<Event, 'id'>) => api.createEvent(newEvent),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+  });
+};
+
+export const useUpdateEvent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Event> }) =>
+      api.updateEvent(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+  });
+};
+
+export const useDeleteEvent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteEvent(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 };

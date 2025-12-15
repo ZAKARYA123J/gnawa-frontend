@@ -38,7 +38,7 @@ const ArtistsScreen = () => {
             />
             <View style={styles.info}>
                 <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.style}>{item.style}</Text>
+                <Text style={styles.style}>{item.genre ?? item.style}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: 'white',
         borderRadius: 10,
-        marginBottom: 15,
+        marginBottom: 5,
         overflow: 'hidden',
         elevation: 3,
         shadowColor: '#000',

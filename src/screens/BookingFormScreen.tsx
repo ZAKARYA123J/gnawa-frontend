@@ -11,16 +11,21 @@ const BookingFormScreen = () => {
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [quantity, setQuantity] = useState('1');
     // Simplified date selection - usually would pick from available slots
-    const [date, setDate] = useState(new Date().toISOString());
+    const [date, _setDate] = useState(new Date().toISOString());
 
     const addBooking = useBookingStore((state) => state.addBooking);
 
     const handleSubmit = () => {
-        if (!name || !email) {
-            Alert.alert('Error', 'Please fill in all fields');
+        const qty = parseInt(quantity, 10);
+        if (!name || !email || !qty || qty < 1) {
+            Alert.alert('Error', 'Please provide name, email and a valid quantity');
             return;
         }
+
+        const code = 'CONF-' + Math.random().toString(36).substr(2, 6).toUpperCase();
 
         const newBooking = {
             id: Math.random().toString(36).substr(2, 9),
@@ -28,7 +33,11 @@ const BookingFormScreen = () => {
             artistName,
             date,
             userName: name,
-            bookingCode: 'GNAWA-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+            bookingCode: code,
+            confirmationCode: code,
+            email,
+            phoneNumber: phoneNumber || undefined,
+            quantity: qty,
         };
 
         addBooking(newBooking);
@@ -60,6 +69,28 @@ const BookingFormScreen = () => {
                     placeholder="Enter your email"
                     keyboardType="email-address"
                     autoCapitalize="none"
+                />
+            </View>
+
+            <View style={styles.formGroup}>
+                <Text style={styles.label}>Phone Number</Text>
+                <TextInput
+                    style={styles.input}
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    placeholder="Enter your phone number"
+                    keyboardType="phone-pad"
+                />
+            </View>
+
+            <View style={styles.formGroup}>
+                <Text style={styles.label}>Ticket Quantity</Text>
+                <TextInput
+                    style={styles.input}
+                    value={quantity}
+                    onChangeText={setQuantity}
+                    placeholder="1"
+                    keyboardType="number-pad"
                 />
             </View>
 

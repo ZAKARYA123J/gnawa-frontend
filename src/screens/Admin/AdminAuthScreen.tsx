@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useAdminStore } from '../../store/useAdminStore';
-import { useNavigation } from '@react-navigation/native';
 import { api } from '../../services/api';
 
 const AdminAuthScreen = () => {
     const [isSignIn, setIsSignIn] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [_isLoading, setIsLoading] = useState(false);
     const { login } = useAdminStore();
-    const navigation = useNavigation();
 
     const handleAuth = async () => {
         if (!email || !password) {
@@ -37,7 +35,7 @@ const AdminAuthScreen = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>{isSignIn ? 'Admin Sign In' : 'Admin Sign Up'}</Text>
+            <Text style={styles.title}>{isSignIn ? 'Sign In' : 'Sign Up'}</Text>
 
             <View style={styles.inputContainer}>
                 <TextInput

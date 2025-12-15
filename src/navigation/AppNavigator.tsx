@@ -1,4 +1,5 @@
 import React from 'react';
+import { TouchableOpacity, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -9,6 +10,8 @@ import ArtistDetailScreen from '../screens/ArtistDetailScreen/ArtistDetailScreen
 import MyBookingsScreen from '../screens/MyBookingsScreen/MyBookingsScreen';
 import BookingFormScreen from '../screens/BookingFormScreen';
 import AdminAuthScreen from '../screens/Admin/AdminAuthScreen';
+import AdminArtisansScreen from '../screens/Admin/AdminArtisansScreen';
+import AdminEventsScreen from '../screens/Admin/AdminEventsScreen';
 import { useAdminStore } from '../store/useAdminStore';
 
 export type ArtistsStackParamList = {
@@ -20,6 +23,7 @@ export type ArtistsStackParamList = {
 const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<ArtistsStackParamList>();
+const AdminStack = createNativeStackNavigator();
 
 function ArtistsStack() {
   return (
@@ -43,18 +47,42 @@ function ArtistsStack() {
   );
 }
 
+function AdminStackNav() {
+  return (
+    <AdminStack.Navigator>
+      <AdminStack.Screen
+        name="AdminArtisans"
+        component={AdminArtisansScreen}
+        options={{ title: 'Admin: Artisans' }}
+      />
+      <AdminStack.Screen
+        name="AdminEvents"
+        component={AdminEventsScreen}
+        options={{ title: 'Admin: Events' }}
+      />
+    </AdminStack.Navigator>
+  );
+}
+
 function MainTabs() {
+  const { logout } = useAdminStore();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,
+        headerShown: true,
+        headerTitle: 'La Grande Soirée Gnawa',
+        headerRight: () => (
+          <TouchableOpacity onPress={logout} style={{ paddingHorizontal: 12 }}>
+            <Text style={{ color: '#d00000', fontWeight: '600' }}>Logout</Text>
+          </TouchableOpacity>
+        ),
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: '#ffffff',
           borderTopColor: '#e6e6e6',
           height: 64,
           paddingBottom: 16,
-          paddingTop: 10,
+     
           elevation: 12,
           shadowColor: '#000',
           shadowOpacity: 0.08,
@@ -76,6 +104,8 @@ function MainTabs() {
             iconName = focused ? 'people' : 'people-outline';
           } else if (route.name === 'MyBookings') {
             iconName = focused ? 'calendar' : 'calendar-outline';
+          } else if (route.name === 'Admin') {
+            iconName = focused ? 'settings' : 'settings-outline';
           }
 
           return <Ionicons name={iconName} size={24} color={color} />;
@@ -86,11 +116,20 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Artists" component={ArtistsStack} />
       <Tab.Screen
-        name="MyBookings"
-        component={MyBookingsScreen}
-        options={{ title: 'My Bookings', headerShown: true }}
+        name="Artists"
+        component={ArtistsStack}
+        options={{
+          headerRight: () => null,
+        }}
+      />
+      <Tab.Screen name="MyBookings" component={MyBookingsScreen} />
+      <Tab.Screen
+        name="Admin"
+        component={AdminStackNav}
+        options={{
+          headerRight: () => null,
+        }}
       />
     </Tab.Navigator>
   );

@@ -10,6 +10,11 @@ export interface Booking {
     date: string;
     userName: string;
     bookingCode: string;
+    // optional fields to align with backend Booking model
+    email?: string;
+    phoneNumber?: string;
+    quantity?: number;
+    confirmationCode?: string;
 }
 
 interface BookingState {

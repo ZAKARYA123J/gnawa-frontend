@@ -5,7 +5,7 @@ import { Artist } from '../../services/api';
 import { useAdminStore } from '../../store/useAdminStore';
 
 const AdminArtisansScreen = () => {
-    const { data: artists, isLoading } = useArtists();
+    const { data: artists } = useArtists();
     const createMutation = useCreateArtist();
     const updateMutation = useUpdateArtist();
     const deleteMutation = useDeleteArtist();

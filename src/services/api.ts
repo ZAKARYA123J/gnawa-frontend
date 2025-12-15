@@ -14,10 +14,20 @@ export interface Event {
 export interface Artist {
   id: string;
   name: string;
-  style: string;
+  // legacy field used in current UI
+  style?: string;
   biography: string;
   photoUrl: string;
   schedule: string[];
+  // new fields aligned with backend model
+  genre?: string;
+  photos?: string[];
+  website?: string;
+  socialMedia?: Record<string, string>;
+  isHeadliner?: boolean;
+  performanceTime?: string;
+  performanceDuration?: number;
+  status?: 'active' | 'inactive' | 'pending';
 }
 
 export interface AuthResponse {
@@ -59,10 +69,21 @@ const normalizeUrl = (url: string | undefined): string | undefined => {
   return absoluteUrl;
 };
 
-const normalizeArtist = (artist: Artist): Artist => ({
-  ...artist,
-  photoUrl: normalizeUrl(artist.photoUrl) as string,
-});
+const normalizeArtist = (artist: Artist): Artist => {
+  // prefer first photo if provided, fallback to photoUrl
+  const primaryPhoto = (artist.photos && artist.photos.length > 0)
+    ? artist.photos[0]
+    : artist.photoUrl;
+
+  return {
+    ...artist,
+    // ensure we have a display style even if backend sends genre
+    style: artist.style ?? artist.genre ?? 'Gnawa',
+    photoUrl: normalizeUrl(primaryPhoto) as string,
+    photos: artist.photos ? artist.photos.map((p) => normalizeUrl(p) as string) : artist.photos,
+    website: artist.website ? normalizeUrl(artist.website) : artist.website,
+  };
+};
 
 const normalizeEventData = (event: Event): Event => ({
   ...event,
@@ -95,6 +116,59 @@ export const api = {
     // Return the first event if an array is returned, or the object itself
     const eventData = Array.isArray(events) ? events[0] : events;
     return normalizeEventData(eventData);
+  },
+
+  getEventById: async (id: string): Promise<Event | undefined> => {
+    const response = await fetch(`${BASE_URL}/events/${id}`);
+    if (!response.ok) {
+      if (response.status === 404) return undefined;
+      throw new Error('Network response was not ok');
+    }
+    const event = await response.json();
+    return normalizeEventData(event);
+  },
+
+  createEvent: async (event: Omit<Event, 'id'>): Promise<Event> => {
+    const response = await fetch(`${BASE_URL}/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(event),
+    });
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const created = await response.json();
+    return normalizeEventData(created);
+  },
+
+  updateEvent: async (
+    id: string,
+    updates: Partial<Event>,
+  ): Promise<Event> => {
+    const response = await fetch(`${BASE_URL}/events/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const updated = await response.json();
+    return normalizeEventData(updated);
+  },
+
+  deleteEvent: async (id: string): Promise<boolean> => {
+    const response = await fetch(`${BASE_URL}/events/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return true;
   },
 
   getArtists: async (): Promise<Artist[]> => {
