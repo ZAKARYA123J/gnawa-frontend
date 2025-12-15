@@ -1,54 +1,71 @@
 
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { useBookingStore, Booking } from '../../store/useBookingStore';
+import { useBookings, useCreateBooking } from '../../hooks/useGnawaData';
+import { BookingRecord } from '../../services/api';
 
 const MyBookingsScreen = () => {
-    const bookings = useBookingStore((state) => state.bookings);
-    const removeBooking = useBookingStore((state) => state.removeBooking);
+    const { data: bookings = [], isLoading, isError } = useBookings();
+    const { mutateAsync: createBooking, isPending } = useCreateBooking();
 
-    const handleCancel = (id: string) => {
-        Alert.alert(
-            'Cancel Booking',
-            'Are you sure you want to cancel this booking?',
-            [
-                { text: 'No', style: 'cancel' },
-                { text: 'Yes', style: 'destructive', onPress: () => removeBooking(id) },
-            ]
-        );
+    const handleCreate = async () => {
+        try {
+            await createBooking({
+                email: 'john.doe@example.com',
+                attendeeName: 'John Doe',
+                phoneNumber: '+212612345678',
+                quantity: 2,
+                totalPrice: 300.0,
+                status: 'confirmed',
+                paymentMethod: 'online',
+                paymentStatus: 'paid',
+                specialRequests: 'Please provide seats near the stage.',
+                notes: 'VIP customer',
+                eventId: '03c463a2-b3f7-4743-bcca-25830ef30008',
+            });
+            Alert.alert('Success', 'Booking created');
+        } catch (e: any) {
+            Alert.alert('Error', e?.message || 'Failed to create booking');
+        }
     };
 
-    const renderItem = ({ item }: { item: Booking }) => (
+    const renderItem = ({ item }: { item: BookingRecord }) => (
         <View style={styles.card}>
             <View style={styles.header}>
-                <Text style={styles.artistName}>{item.artistName}</Text>
-                <Text style={styles.code}>{item.bookingCode}</Text>
+                <Text style={styles.artistName}>{item.attendeeName}</Text>
+                <Text style={styles.code}>{item.confirmationCode}</Text>
             </View>
             <View style={styles.details}>
-                <Text style={styles.detailText}>User: {item.userName}</Text>
-                <Text style={styles.detailText}>Date: {new Date(item.date).toLocaleDateString()}</Text>
-                {item.email ? (
-                    <Text style={styles.detailText}>Email: {item.email}</Text>
-                ) : null}
-                {typeof item.quantity === 'number' ? (
-                    <Text style={styles.detailText}>Tickets: {item.quantity}</Text>
-                ) : null}
-                {item.phoneNumber ? (
-                    <Text style={styles.detailText}>Phone: {item.phoneNumber}</Text>
-                ) : null}
+                <Text style={styles.detailText}>Email: {item.email}</Text>
+                <Text style={styles.detailText}>Phone: {item.phoneNumber ?? ''}</Text>
+                <Text style={styles.detailText}>Tickets: {item.quantity}</Text>
+                <Text style={styles.detailText}>Total: {typeof item.totalPrice === 'string' ? item.totalPrice : item.totalPrice.toFixed(2)}</Text>
+                <Text style={styles.detailText}>Status: {item.status}</Text>
+                <Text style={styles.detailText}>Payment: {item.paymentMethod} / {item.paymentStatus}</Text>
+                {item.specialRequests ? <Text style={styles.detailText}>Requests: {item.specialRequests}</Text> : null}
+                {item.notes ? <Text style={styles.detailText}>Notes: {item.notes}</Text> : null}
+                <Text style={styles.detailText}>Event: {item.eventId}</Text>
+                <Text style={styles.detailText}>Created: {new Date(item.createdAt).toLocaleString()}</Text>
             </View>
-            <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => handleCancel(item.id)}
-            >
-                <Text style={styles.cancelText}>Cancel Booking</Text>
-            </TouchableOpacity>
         </View>
     );
 
     return (
         <View style={styles.container}>
-            {bookings.length === 0 ? (
+            <View style={styles.headerBar}>
+                <TouchableOpacity style={styles.createButton} onPress={handleCreate} disabled={isPending}>
+                    <Text style={styles.createText}>{isPending ? 'Creating…' : 'Create Booking'}</Text>
+                </TouchableOpacity>
+            </View>
+            {isLoading ? (
+                <View style={styles.emptyCenter}>
+                    <Text style={styles.emptyText}>Loading…</Text>
+                </View>
+            ) : isError ? (
+                <View style={styles.emptyCenter}>
+                    <Text style={styles.emptyText}>Failed to load bookings.</Text>
+                </View>
+            ) : bookings.length === 0 ? (
                 <View style={styles.emptyCenter}>
                     <Text style={styles.emptyText}>No bookings yet.</Text>
                 </View>
@@ -71,6 +88,21 @@ const styles = StyleSheet.create({
     },
     list: {
         padding: 15,
+    },
+    headerBar: {
+        paddingHorizontal: 15,
+        paddingTop: 12,
+    },
+    createButton: {
+        padding: 12,
+        backgroundColor: '#0B7285',
+        borderRadius: 8,
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    createText: {
+        color: '#fff',
+        fontWeight: '600',
     },
     emptyCenter: {
         flex: 1,

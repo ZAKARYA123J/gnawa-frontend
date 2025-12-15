@@ -17,7 +17,7 @@ const AdminArtisansScreen = () => {
     // Form State
     const [name, setName] = useState('');
     const [style, setStyle] = useState('');
-    const [bio, setBio] = useState('');
+    const [biography, setBiography] = useState('');
     const [photoUrl, setPhotoUrl] = useState('');
 
     const openModal = (artist?: Artist) => {
@@ -25,13 +25,13 @@ const AdminArtisansScreen = () => {
             setEditingArtist(artist);
             setName(artist.name);
             setStyle(artist.style);
-            setBio(artist.bio);
+            setBiography(artist.biography);
             setPhotoUrl(artist.photoUrl);
         } else {
             setEditingArtist(null);
             setName('');
             setStyle('');
-            setBio('');
+            setBiography('');
             setPhotoUrl('https://picsum.photos/200'); // Default
         }
         setModalVisible(true);
@@ -46,7 +46,7 @@ const AdminArtisansScreen = () => {
         if (editingArtist) {
             updateMutation.mutate({
                 id: editingArtist.id,
-                updates: { name, style, bio, photoUrl }
+                updates: { name, style, biography, photoUrl }
             }, {
                 onSuccess: () => setModalVisible(false)
             });
@@ -54,7 +54,7 @@ const AdminArtisansScreen = () => {
             createMutation.mutate({
                 name,
                 style,
-                bio,
+                biography,
                 photoUrl,
                 schedule: [] // Default empty schedule
             }, {
@@ -126,8 +126,8 @@ const AdminArtisansScreen = () => {
                         <TextInput
                             style={[styles.input, styles.textArea]}
                             placeholder="Biography"
-                            value={bio}
-                            onChangeText={setBio}
+                            value={biography}
+                            onChangeText={setBiography}
                             multiline
                         />
                         <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>

@@ -44,19 +44,60 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface BookingRecord {
+  id: string;
+  confirmationCode: string;
+  email: string;
+  attendeeName: string;
+  phoneNumber: string | null;
+  quantity: number;
+  totalPrice: number | string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'used' | string;
+  paymentMethod: 'online' | 'cash' | string;
+  paymentStatus: 'paid' | 'unpaid' | 'refunded' | string;
+  specialRequests: string | null;
+  checkedInAt: string | null;
+  notes: string | null;
+  eventId: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+export interface CreateBookingPayload {
+  email: string;
+  attendeeName: string;
+  phoneNumber: string;
+  quantity: number;
+  totalPrice: number;
+  status: 'confirmed';
+  paymentMethod: 'online';
+  paymentStatus: 'paid';
+  specialRequests: string;
+  notes: string;
+  eventId: string;
+}
+
 // API Configuration
 const BASE_URL = 'http://10.0.2.2:3000'; // This should work in Android Emulator
 
-// Normalize URLs coming from backend so Android emulator can load them.
-// - Converts relative paths to absolute using BASE_URL
-// - Rewrites localhost/127.0.0.1 to 10.0.2.2 on Android
-const normalizeUrl = (url: string | undefined): string | undefined => {
-  if (!url) return url;
+// Sanitize incoming URL-like strings that may contain extraneous backticks or spaces
+const sanitizeUrlString = (raw: string | undefined): string | undefined => {
+  if (!raw) return raw;
+  // Trim spaces and remove wrapping backticks or quotes
+  const trimmed = raw.trim().replace(/^`+|`+$/g, '').replace(/^"+|"+$/g, '').replace(/^'+|'+$/g, '');
+  return trimmed;
+};
 
-  const isAbsolute = url.startsWith('http://') || url.startsWith('https://');
+
+const normalizeUrl = (url: string | undefined): string | undefined => {
+  const sanitized = sanitizeUrlString(url);
+  if (!sanitized) return sanitized;
+
+  const isAbsolute = sanitized.startsWith('http://') || sanitized.startsWith('https://');
   let absoluteUrl = isAbsolute
-    ? url
-    : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+    ? sanitized
+    : `${BASE_URL}${sanitized.startsWith('/') ? '' : '/'}${sanitized}`;
 
   if (Platform.OS === 'android') {
     absoluteUrl = absoluteUrl
@@ -75,13 +116,22 @@ const normalizeArtist = (artist: Artist): Artist => {
     ? artist.photos[0]
     : artist.photoUrl;
 
+  const normalizedPhotos = artist.photos ? artist.photos.map((p) => normalizeUrl(p) as string) : artist.photos;
+
+  const normalizedSocial = artist.socialMedia
+    ? Object.fromEntries(
+        Object.entries(artist.socialMedia).map(([k, v]) => [k, normalizeUrl(v) as string])
+      )
+    : artist.socialMedia;
+
   return {
     ...artist,
     // ensure we have a display style even if backend sends genre
     style: artist.style ?? artist.genre ?? 'Gnawa',
     photoUrl: normalizeUrl(primaryPhoto) as string,
-    photos: artist.photos ? artist.photos.map((p) => normalizeUrl(p) as string) : artist.photos,
+    photos: normalizedPhotos,
     website: artist.website ? normalizeUrl(artist.website) : artist.website,
+    socialMedia: normalizedSocial,
   };
 };
 
@@ -264,6 +314,30 @@ export const api = {
       throw new Error(errorData.message || 'Registration failed');
     }
 
+    return response.json();
+  },
+
+  getBookings: async (): Promise<BookingRecord[]> => {
+    const response = await fetch(`${BASE_URL}/bookings`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+    return Array.isArray(data) ? data : [data];
+  },
+
+  createBooking: async (payload: CreateBookingPayload): Promise<BookingRecord> => {
+    const response = await fetch(`${BASE_URL}/bookings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Create booking failed');
+    }
     return response.json();
   },
 };

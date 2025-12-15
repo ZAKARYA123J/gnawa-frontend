@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, Artist, Event } from '../services/api';
+import { api, Artist, Event, BookingRecord, CreateBookingPayload } from '../services/api';
 
 export const useEventInfo = () => {
   return useQuery<Event>({
@@ -27,6 +27,23 @@ export const useArtists = () => {
   return useQuery({
     queryKey: ['artists'],
     queryFn: api.getArtists,
+  });
+};
+
+export const useBookings = () => {
+  return useQuery<BookingRecord[]>({
+    queryKey: ['bookings'],
+    queryFn: api.getBookings,
+  });
+};
+
+export const useCreateBooking = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateBookingPayload) => api.createBooking(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+    },
   });
 };
 
